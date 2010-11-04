@@ -19,8 +19,8 @@
 	 * @param url           The url to load
 	 * @param usePhoneGap   Load url in PhoneGap webview [optional]
 	 */
-	Facebook.prototype.authorize = function() {
-	    PhoneGap.exec(null, null, "FacebookAuth", "authorize", []);	
+	Facebook.prototype.authorize = function(callback) {
+	    PhoneGap.exec(callback, null, "FacebookAuth", "authorize", []);	
 	};
 
 	/**
