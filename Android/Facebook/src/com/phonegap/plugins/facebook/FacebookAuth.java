@@ -16,6 +16,7 @@ import android.app.Activity;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.phonegap.api.Plugin;
 import com.phonegap.api.PluginResult;
@@ -40,29 +41,15 @@ public class FacebookAuth extends Plugin {
 	 * @return 				A PluginResult object with a status and message.
 	 */
 	public PluginResult execute(String action, JSONArray args, String callbackId) {
-		PluginResult.Status status = PluginResult.Status.OK;
-		String result = "";
 		System.out.println("execute: "+ action);
 		
-		try {
-			if (action.equals("authorize")) {
+		if (action.equals("authorize")) {
 				
-				result = this.authorize(args.getString(0));
-				if (result.length() > 0) {
-					status = PluginResult.Status.ERROR;
-				}
-				System.out.println("result: "+ result);
+			this.authorize();
 				
-			}
-			
-			return new PluginResult(status, result);
-		} catch (JSONException e) {
-			System.out.println("exception: "+ action);
-			
-			return new PluginResult(PluginResult.Status.JSON_EXCEPTION);
 		}
+		return new PluginResult(PluginResult.Status.NO_RESULT, "");
 	}
-
 	/**
 	 * Identifies if action to be executed returns a value and should be run synchronously.
 	 * 
@@ -87,15 +74,22 @@ public class FacebookAuth extends Plugin {
     /**
      * Display a new browser with the specified URL.
      * 
-     * @param url			The url to load.
-     * @param usePhoneGap	Load url in PhoneGap webview
      * @return				"" if ok, or error message.
      */
-    public String authorize(String url) {
-	
-		this.mFb = new Facebook(APP_ID);	
-        this.mFb.authorize((Activity) this.ctx, new AuthorizeListener());
-		return "string";
+    public void authorize() {
+    	Log.d("PhoneGapLog", "authorize");
+		final FacebookAuth fba = this;
+		Runnable runnable = new Runnable() {
+			public void run() {
+				fba.mFb = new Facebook(APP_ID);	
+//				We're forcing dialog auth because DroidGap doesn't like FB dispatching an intent.
+//				TODO: Make sso work instead.
+		        fba.mFb.authorize((Activity) fba.ctx, new String[] {}, Facebook.FORCE_DIALOG_AUTH, new AuthorizeListener());
+
+			};
+		};
+		this.ctx.runOnUiThread(runnable);
+
     }
 
 	class AuthorizeListener implements DialogListener {
