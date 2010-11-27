@@ -1,12 +1,3 @@
-/*
- * PhoneGap is available under *either* the terms of the modified BSD license *or* the
- * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
- *
- * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
- */
-
-
 (function(){
 	/**
 	 * Constructor
@@ -14,17 +5,21 @@
 	function Facebook() {}
 
 	/**
-	 * Display a new browser with the specified URL.
+	 * Logs into facebook
 	 *
-	 * @param url           The url to load
-	 * @param usePhoneGap   Load url in PhoneGap webview [optional]
+	 * @param app_id        Your facebook app_id
+	 * @param callback      called when logged in
 	 */
-	Facebook.prototype.authorize = function(callback) {
-	    PhoneGap.exec(callback, null, "FacebookAuth", "authorize", []);	
+	Facebook.prototype.authorize = function(app_id, callback) {
+	    PhoneGap.exec(callback, null, "FacebookAuth", "authorize", [app_id]);	
 	};
-
+	
+	Facebook.prototype.request = function(path, callback) {
+	    PhoneGap.exec(callback, null, "FacebookAuth", "request", [path]);	
+	};
+	
 	/**
-	 * Load ChildBrowser
+	 * Load Plugin
 	 */
 	PhoneGap.addConstructor(function() {
 	    PhoneGap.addPlugin("facebook", new Facebook());

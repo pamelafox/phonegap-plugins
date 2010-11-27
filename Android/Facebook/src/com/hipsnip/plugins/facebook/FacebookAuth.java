@@ -27,7 +27,6 @@ import com.facebook.android.Util;
 
 public class FacebookAuth extends Plugin {
 	
-	public static final String APP_ID = "175729095772478";
 	private Facebook mFb;
     public String callback;
 	/**
@@ -42,12 +41,19 @@ public class FacebookAuth extends Plugin {
 		callback = callbackId;
 		System.out.println("execute: "+ action);
 		
+		String first;
+		
+		try {
+			first = args.getString(0);
+        } catch (JSONException e) {
+			first = "";
+		    Log.w("Facebook-Example", "JSON Error in response");
+		}
+		
 		if (action.equals("authorize")) {
-				
-			this.authorize();
-				
+			this.authorize(first); // first arg is APP_ID
 		} else if (action.equals("request")){
-			
+			this.getResponse(first); // first arg is path
 		}
 		
 		PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -57,13 +63,13 @@ public class FacebookAuth extends Plugin {
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		this.mFb.authorizeCallback(requestCode, resultCode, intent);
-        this.onResponse();
+        this.getResponse("me");
 	}
 	
-	public void onResponse(){
+	public void getResponse(final String path){
 		Log.d("DroidGap", "onActivityResult FacebookAuth");
 		try {
-			String response = this.mFb.request("me");
+			String response = this.mFb.request(path);
 			JSONObject json = Util.parseJson(response);
             
 			this.success(new PluginResult(PluginResult.Status.OK, json), this.callback);
@@ -104,12 +110,12 @@ public class FacebookAuth extends Plugin {
      * 
      * @return				"" if ok, or error message.
      */
-    public void authorize() {
+    public void authorize(final String appid) {
     	Log.d("PhoneGapLog", "authorize");
 		final FacebookAuth fba = this;
 		Runnable runnable = new Runnable() {
 			public void run() {
-				fba.mFb = new Facebook(APP_ID);
+				fba.mFb = new Facebook(appid);
 				fba.mFb.setPlugin(fba);
 		        fba.mFb.authorize((Activity) fba.ctx, new String[] {}, new AuthorizeListener(fba));
 
@@ -131,7 +137,7 @@ public class FacebookAuth extends Plugin {
 			//  Handle a successful login
 	   
 			Log.d("PhoneGapLog",values.toString());
-			this.fba.onResponse();
+			this.fba.getResponse("me");
 		}
 		
 		public void onFacebookError(FacebookError e) {

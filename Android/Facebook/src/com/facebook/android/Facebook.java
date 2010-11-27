@@ -36,6 +36,13 @@ import android.util.Log;
 import android.webkit.CookieSyncManager;
 
 /**
+ * PhoneGap plugin def
+ */
+import com.phonegap.api.Plugin;
+import com.phonegap.DroidGap;
+import android.util.Log;
+
+/**
  * Main Facebook object for interacting with the Facebook developer API.
  * Provides methods to log in and log out a user, make requests using the REST
  * and Graph APIs, and start user interface interactions with the API (such as
@@ -80,6 +87,11 @@ public class Facebook {
     private int mAuthActivityCode;
     private DialogListener mAuthDialogListener;
 
+	/**
+	 * Added for Phonegap compatibility
+	 */
+	private Plugin plugin = null;
+	
 	public Facebook(String applicationId) {
 		if (applicationId == null) {
 			throw new IllegalArgumentException(
@@ -87,6 +99,14 @@ public class Facebook {
 							+ "object. See README for details.");
 		}
 		mAppId = applicationId;
+	}
+	
+	/**
+	 * Added for Phonegap compatibility
+	 */
+	
+	public void setPlugin(Plugin plugin){
+		this.plugin = plugin;
 	}
 
 	/**
@@ -222,7 +242,13 @@ public class Facebook {
         mAuthPermissions = permissions;
         mAuthActivityCode = activityCode;
         try {
-            activity.startActivityForResult(intent, activityCode);
+            if(this.plugin != null){
+                DroidGap droidgap = (DroidGap)activity;
+                droidgap.startActivityForResult(this.plugin, intent, activityCode);
+            } else {
+                activity.startActivityForResult(intent, activityCode);
+            }
+            
         } catch (ActivityNotFoundException e) {
             didSucceed = false;
         }
