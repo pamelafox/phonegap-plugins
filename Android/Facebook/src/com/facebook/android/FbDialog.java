@@ -59,19 +59,14 @@ public class FbDialog extends Dialog {
     private TextView mTitle;
     
     public FbDialog(Context context, String url, DialogListener listener) {
-		super(context);
-		Log.d("FbDialog","construct");
-
+        super(context);
         mUrl = url;
         mListener = listener;
-
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		Log.d("FbDialog","onCreate");
-
         mSpinner = new ProgressDialog(getContext());
         mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mSpinner.setMessage("Loading...");
@@ -90,10 +85,9 @@ public class FbDialog extends Dialog {
     }
 
     private void setUpTitle() {
-	
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-/*        Drawable icon = getContext().getResources().getDrawable(
-               R.drawable.facebook_icon); */
+        Drawable icon = getContext().getResources().getDrawable(
+                R.drawable.facebook_icon);
         mTitle = new TextView(getContext());
         mTitle.setText("Facebook");
         mTitle.setTextColor(Color.WHITE);
@@ -101,13 +95,12 @@ public class FbDialog extends Dialog {
         mTitle.setBackgroundColor(FB_BLUE);
         mTitle.setPadding(MARGIN + PADDING, MARGIN, MARGIN, MARGIN);
         mTitle.setCompoundDrawablePadding(MARGIN + PADDING);
-/*        mTitle.setCompoundDrawablesWithIntrinsicBounds(
-                icon, null, null, null); */
+        mTitle.setCompoundDrawablesWithIntrinsicBounds(
+                icon, null, null, null);
         mContent.addView(mTitle);
     }
     
     private void setUpWebView() {
-	
         mWebView = new WebView(getContext());
         mWebView.setVerticalScrollBarEnabled(false);
         mWebView.setHorizontalScrollBarEnabled(false);

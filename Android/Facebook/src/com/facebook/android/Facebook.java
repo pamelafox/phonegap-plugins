@@ -173,7 +173,7 @@ public class Facebook {
 		boolean singleSignOnStarted = false;
 
         mAuthDialogListener = listener;
-		
+
 		// Prefer single sign-on, where available.
         if (activityCode >= 0) {
 			singleSignOnStarted = startSingleSignOn(activity, mAppId,
@@ -181,7 +181,6 @@ public class Facebook {
         }
         // Otherwise fall back to traditional dialog.
 		if (!singleSignOnStarted) {
-			
 			startDialogAuth(activity, mAppId, permissions);
         }
     }
@@ -285,7 +284,6 @@ public class Facebook {
         if (permissions.length > 0) {
             params.putString("scope", TextUtils.join(",", permissions));
         }
-
         CookieSyncManager.createInstance(activity);
         dialog(activity, LOGIN, params, new DialogListener() {
 
@@ -605,17 +603,11 @@ public class Facebook {
             parameters.putString(TOKEN, getAccessToken());
         }
         String url = endpoint + "?" + Util.encodeUrl(parameters);
-
 		if (context.checkCallingOrSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             Util.showAlert(context, "Error",
             "Application requires permission to access the Internet");
         } else {
-			System.out.println("FbDialog url: "+url);
-			
-            FbDialog test = new FbDialog(context, url, listener);
-			System.out.println("Constructed");
-			
-			test.show();
+            new FbDialog(context, url, listener).show();
         }
     }
 
