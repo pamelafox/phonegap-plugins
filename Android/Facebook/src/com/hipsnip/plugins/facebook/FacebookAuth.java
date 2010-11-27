@@ -1,11 +1,7 @@
 /*
- * PhoneGap is available under *either* the terms of the modified BSD license *or* the
- * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
- * 
- * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010, HipSnip Ltd
  */
-package com.phonegap.plugins.facebook;
+package com.hipsnip.plugins.facebook;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,6 +54,30 @@ public class FacebookAuth extends Plugin {
 		r.setKeepCallback(true);
 		return r;
 	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		this.mFb.authorizeCallback(requestCode, resultCode, intent);
+        this.onResponse();
+	}
+	
+	public void onResponse(){
+		Log.d("DroidGap", "onActivityResult FacebookAuth");
+		try {
+			String response = this.mFb.request("me");
+			JSONObject json = Util.parseJson(response);
+            
+			this.success(new PluginResult(PluginResult.Status.OK, json), this.callback);
+			
+		} catch (java.net.MalformedURLException e) {
+			this.error(new PluginResult(PluginResult.Status.ERROR), this.callback);
+		} catch (java.io.IOException e) {
+			this.error(new PluginResult(PluginResult.Status.ERROR), this.callback);
+        } catch (JSONException e) {
+            Log.w("Facebook-Example", "JSON Error in response");
+        } catch (FacebookError e) {
+            Log.w("Facebook-Example", "Facebook Error: " + e.getMessage());
+        }
+	}
 	/**
 	 * Identifies if action to be executed returns a value and should be run synchronously.
 	 * 
@@ -89,10 +109,9 @@ public class FacebookAuth extends Plugin {
 		final FacebookAuth fba = this;
 		Runnable runnable = new Runnable() {
 			public void run() {
-				fba.mFb = new Facebook(APP_ID);	
-//				We're forcing dialog auth because DroidGap doesn't like FB dispatching an intent.
-//				TODO: Make sso work instead.
-		        fba.mFb.authorize((Activity) fba.ctx, new String[] {}, Facebook.FORCE_DIALOG_AUTH, new AuthorizeListener(fba));
+				fba.mFb = new Facebook(APP_ID);
+				fba.mFb.setPlugin(fba);
+		        fba.mFb.authorize((Activity) fba.ctx, new String[] {}, new AuthorizeListener(fba));
 
 			};
 		};
@@ -112,23 +131,7 @@ public class FacebookAuth extends Plugin {
 			//  Handle a successful login
 	   
 			Log.d("PhoneGapLog",values.toString());
-			
-			
-			try {
-				String response = this.fba.mFb.request("me");
-				JSONObject json = Util.parseJson(response);
-                
-				this.fba.success(new PluginResult(PluginResult.Status.OK, json), this.fba.callback);
-				
-			} catch (java.net.MalformedURLException e) {
-				this.fba.error(new PluginResult(PluginResult.Status.ERROR), this.fba.callback);
-			} catch (java.io.IOException e) {
-				this.fba.error(new PluginResult(PluginResult.Status.ERROR), this.fba.callback);
-            } catch (JSONException e) {
-                Log.w("Facebook-Example", "JSON Error in response");
-            } catch (FacebookError e) {
-                Log.w("Facebook-Example", "Facebook Error: " + e.getMessage());
-            }
+			this.fba.onResponse();
 		}
 		
 		public void onFacebookError(FacebookError e) {
