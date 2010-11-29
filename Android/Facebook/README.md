@@ -1,10 +1,23 @@
 # Facebook for PhoneGap on Android #
 by Jos Shepherd
 
-This is an attempt to make a PhoneGap plugin from the Facebook Android SDK:
+This is a PhoneGap plugin based on the Facebook Android SDK:
 https://github.com/facebook/facebook-android-sdk
 
-It is currently not functional (the login dialog is silently failing to appear)
+Basic calls to the authorize and graph API are supported - more to come.
+
+Example use:
+
+	appId = 123123123 // this is your facebook app id
+	
+	window.plugins.facebook.authorize(appId ,function(res){
+		alert(res.name); // the authorized users name
+
+		window.plugins.facebook.request("me/likes" ,function(res){
+			alert(res.data[0].name); // the name of the first 'liked' item
+		});
+	
+	});
 
 
 ## Licence ##
