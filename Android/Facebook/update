@@ -1,0 +1,10 @@
+SRC="https://github.com/facebook/facebook-android-sdk/raw/master/facebook/src/com/facebook/android"
+
+curl $SRC/AsyncFacebookRunner.java -o src/com/facebook/android/AsyncFacebookRunner.java
+curl $SRC/DialogError.java -o src/com/facebook/android/DialogError.java
+curl $SRC/Facebook.java -o src/com/facebook/android/Facebook.java
+curl $SRC/FacebookError.java -o src/com/facebook/android/FacebookError.java
+curl $SRC/FbDialog.java -o src/com/facebook/android/FbDialog.java
+curl $SRC/Util.java -o src/com/facebook/android/Util.java
+
+patch --no-backup-if-mismatch -d src/com/facebook/android < fb_patch

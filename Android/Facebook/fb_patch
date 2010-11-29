@@ -1,0 +1,81 @@
+--- Facebook.java	2010-11-04 15:58:21.000000000 +0000
++++ Facebook.java	2010-11-27 15:21:08.000000000 +0000
+@@ -36,6 +36,13 @@
+ import android.webkit.CookieSyncManager;
+ 
+ /**
++ * PhoneGap plugin def
++ */
++import com.phonegap.api.Plugin;
++import com.phonegap.DroidGap;
++import android.util.Log;
++
++/**
+  * Main Facebook object for interacting with the Facebook developer API.
+  * Provides methods to log in and log out a user, make requests using the REST
+  * and Graph APIs, and start user interface interactions with the API (such as
+@@ -80,6 +87,11 @@
+     private int mAuthActivityCode;
+     private DialogListener mAuthDialogListener;
+ 
++	/**
++	 * Added for Phonegap compatibility
++	 */
++	private Plugin plugin = null;
++	
+ 	public Facebook(String applicationId) {
+ 		if (applicationId == null) {
+ 			throw new IllegalArgumentException(
+@@ -88,6 +100,14 @@
+ 		}
+ 		mAppId = applicationId;
+ 	}
++	
++	/**
++	 * Added for Phonegap compatibility
++	 */
++	
++	public void setPlugin(Plugin plugin){
++		this.plugin = plugin;
++	}
+ 
+ 	/**
+ 	 * Default authorize method doesn't require any permissions.
+@@ -223,7 +243,13 @@
+         mAuthPermissions = permissions;
+         mAuthActivityCode = activityCode;
+         try {
+-            activity.startActivityForResult(intent, activityCode);
++            if(this.plugin != null){
++                DroidGap droidgap = (DroidGap)activity;
++                droidgap.startActivityForResult(this.plugin, intent, activityCode);
++            } else {
++                activity.startActivityForResult(intent, activityCode);
++            }
++            
+         } catch (ActivityNotFoundException e) {
+             didSucceed = false;
+         }
+--- FbDialog.java
++++ FbDialog.java
+@@ -86,8 +86,8 @@ public class FbDialog extends Dialog {
+
+     private void setUpTitle() {
+         requestWindowFeature(Window.FEATURE_NO_TITLE);
+-        Drawable icon = getContext().getResources().getDrawable(
+-                R.drawable.facebook_icon);
++        /* Drawable icon = getContext().getResources().getDrawable(
++                R.drawable.facebook_icon);*/
+         mTitle = new TextView(getContext());
+         mTitle.setText("Facebook");
+         mTitle.setTextColor(Color.WHITE);
+@@ -95,8 +95,8 @@ public class FbDialog extends Dialog {
+         mTitle.setBackgroundColor(FB_BLUE);
+         mTitle.setPadding(MARGIN + PADDING, MARGIN, MARGIN, MARGIN);
+         mTitle.setCompoundDrawablePadding(MARGIN + PADDING);
+-        mTitle.setCompoundDrawablesWithIntrinsicBounds(
+-                icon, null, null, null);
++        /* mTitle.setCompoundDrawablesWithIntrinsicBounds(
++                icon, null, null, null);*/
+         mContent.addView(mTitle);
+     }
