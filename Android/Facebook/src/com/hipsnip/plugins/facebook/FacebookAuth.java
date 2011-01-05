@@ -47,18 +47,31 @@ public class FacebookAuth extends Plugin {
 			first = args.getString(0);
         } catch (JSONException e) {
 			first = "";
-		    Log.w("Facebook-Example", "JSON Error in response");
+		    Log.w("Facebook-Plugin", "No arguments in execute");
 		}
 		
 		if (action.equals("authorize")) {
 			this.authorize(first); // first arg is APP_ID
 		} else if (action.equals("request")){
 			this.getResponse(first); // first arg is path
+		} else if (action.equals("getAccess")){
+			this.getAccess();
 		}
 		
 		PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
 		r.setKeepCallback(true);
 		return r;
+	}
+	
+	public void getAccess(){
+		JSONObject json = new JSONObject();
+		try {
+			json.put("token", this.mFb.getAccessToken());
+			json.put("expires", this.mFb.getAccessExpires());
+		} catch (JSONException e) {
+		}
+	    
+		this.success(new PluginResult(PluginResult.Status.OK, json), this.callback);
 	}
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
