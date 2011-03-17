@@ -119,7 +119,10 @@ public class FileUploader extends Plugin {
 			// set post headers 
 			conn.setRequestProperty("Connection","Keep-Alive"); 
 			conn.setRequestProperty("Content-Type","multipart/form-data;boundary="+boundary); 
-			conn.setRequestProperty("Cookie", cookie);
+			
+			if(("").equals(cookie)){
+				conn.setRequestProperty("Cookie", cookie);
+			}
 			// open data output stream 
 			DataOutputStream dos = new DataOutputStream(conn.getOutputStream()); 
 			
