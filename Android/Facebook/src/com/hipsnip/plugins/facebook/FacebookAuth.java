@@ -29,6 +29,7 @@ public class FacebookAuth extends Plugin {
 
 	private Facebook mFb;
 	public String callback;
+	public String[] permissions = new String[] {};
 
 	/**
 	 * Executes the request and returns PluginResult.
@@ -57,6 +58,8 @@ public class FacebookAuth extends Plugin {
 			this.getResponse(first); // first arg is path
 		} else if (action.equals("getAccess")){
 			this.getAccess();
+		} else if (action.equals("setPermissions")){
+			this.setPermissions(args);
 		}
 
 		PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -120,6 +123,24 @@ public class FacebookAuth extends Plugin {
 	//--------------------------------------------------------------------------
 
 	/**
+	 * Set the permissions we will request from Facebook
+	 *
+	 * @return				true if ok, or print a stack trace
+	 */
+	public void setPermissions(JSONArray args) {
+		Log.d("PhoneGapLog", "setPermissions");
+		permissions = new String[args.length()];
+		for(int i = 0; i < args.length(); i++) {
+			try {
+				permissions[i] = args.getString(i);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		this.success(new PluginResult(PluginResult.Status.OK, true), this.callback);
+	}
+
+	/**
 	 * Display a new browser with the specified URL.
 	 *
 	 * @return				"" if ok, or error message.
@@ -131,8 +152,7 @@ public class FacebookAuth extends Plugin {
 			public void run() {
 				fba.mFb = new Facebook(appid);
 				fba.mFb.setPlugin(fba);
-				fba.mFb.authorize((Activity) fba.ctx, new String[] {}, new AuthorizeListener(fba));
-
+				fba.mFb.authorize((Activity) fba.ctx, fba.permissions, new AuthorizeListener(fba));
 			};
 		};
 		this.ctx.runOnUiThread(runnable);
