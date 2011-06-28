@@ -54,6 +54,8 @@ public class FacebookAuth extends Plugin {
 
 		if (action.equals("authorize")) {
 			this.authorize(first); // first arg is APP_ID
+		} else if (action.equals("reauthorize")) {
+			this.reauthorize(first, args); // first arg is APP_ID
 		} else if (action.equals("request")){
 			this.getResponse(first); // first arg is path
 		} else if (action.equals("getAccess")){
@@ -150,13 +152,41 @@ public class FacebookAuth extends Plugin {
 		final FacebookAuth fba = this;
 		Runnable runnable = new Runnable() {
 			public void run() {
-				fba.mFb = new Facebook(appid);
-				fba.mFb.setPlugin(fba);
+				if (fba.mFb == null) {
+					fba.mFb = new Facebook(appid);
+					fba.mFb.setPlugin(fba);
+				}
 				fba.mFb.authorize((Activity) fba.ctx, fba.permissions, new AuthorizeListener(fba));
 			};
 		};
 		this.ctx.runOnUiThread(runnable);
+	}
 
+	/**
+	 * Validate an existing token and expiration, and use them for the Facebook
+	 * session, rather than re-authenticating the app (which presents a rather
+	 * user experience in mobile).
+	 *
+	 * @return				true if ok, or print a stack trace
+	 */
+	public void reauthorize(final String appid, JSONArray args) {
+		Log.d("PhoneGapLog", "reauthorize");
+		final FacebookAuth fba = this;
+		final String access_token = args.optString(1, null);
+		final Long expires = args.optLong(2, -1);
+		try {
+			if (fba.mFb == null) {
+				fba.mFb = new Facebook(appid);
+				fba.mFb.setPlugin(fba);
+			}
+			if (access_token != null && expires != -1) {
+				fba.mFb.setAccessToken(access_token);
+				fba.mFb.setAccessExpires(expires);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		this.success(new PluginResult(PluginResult.Status.OK, fba.mFb.isSessionValid()), this.callback);
 	}
 
 	class AuthorizeListener implements DialogListener {

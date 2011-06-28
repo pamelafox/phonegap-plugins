@@ -14,6 +14,10 @@
         PhoneGap.exec(callback, null, "FacebookAuth", "authorize", [app_id]);
     };
 
+    Facebook.prototype.reauthorize = function(app_id, token, expires, callback) {
+        PhoneGap.exec(callback, null, "FacebookAuth", "reauthorize", [app_id, token, expires]);
+    };
+
     Facebook.prototype.setPermissions = function(permissions, callback) {
         PhoneGap.exec(callback, null, "FacebookAuth", "setPermissions", permissions);
     };
