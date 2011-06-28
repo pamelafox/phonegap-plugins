@@ -174,17 +174,13 @@ public class FacebookAuth extends Plugin {
 		final FacebookAuth fba = this;
 		final String access_token = args.optString(1, null);
 		final Long expires = args.optLong(2, -1);
-		try {
-			if (fba.mFb == null) {
-				fba.mFb = new Facebook(appid);
-				fba.mFb.setPlugin(fba);
-			}
-			if (access_token != null && expires != -1) {
-				fba.mFb.setAccessToken(access_token);
-				fba.mFb.setAccessExpires(expires);
-			}
-		} catch (JSONException e) {
-			e.printStackTrace();
+		if (fba.mFb == null) {
+			fba.mFb = new Facebook(appid);
+			fba.mFb.setPlugin(fba);
+		}
+		if (access_token != null && expires != -1) {
+			fba.mFb.setAccessToken(access_token);
+			fba.mFb.setAccessExpires(expires);
 		}
 		this.success(new PluginResult(PluginResult.Status.OK, fba.mFb.isSessionValid()), this.callback);
 	}
