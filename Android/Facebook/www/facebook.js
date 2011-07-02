@@ -14,8 +14,8 @@
         PhoneGap.exec(callback, null, "FacebookAuth", "authorize", [app_id]);
     };
 
-    Facebook.prototype.reauthorize = function(app_id, token, expires, callback) {
-        PhoneGap.exec(callback, null, "FacebookAuth", "reauthorize", [app_id, token, expires]);
+    Facebook.prototype.reauthorize = function(app_id, callback) {
+        PhoneGap.exec(callback, null, "FacebookAuth", "reauthorize", [app_id]);
     };
 
     Facebook.prototype.setPermissions = function(permissions, callback) {
@@ -28,6 +28,14 @@
 
     Facebook.prototype.getAccess = function(callback) {
         PhoneGap.exec(callback, null, "FacebookAuth", "getAccess", []);
+    };
+
+    Facebook.prototype.dialog = function(action, parameters, callback) {
+        PhoneGap.exec(callback, null, "FacebookAuth", "dialog", [action, parameters]);
+    };
+
+    Facebook.prototype.logout = function(callback) {
+        PhoneGap.exec(callback, null, "FacebookAuth", "logout", []);
     };
 
     /**

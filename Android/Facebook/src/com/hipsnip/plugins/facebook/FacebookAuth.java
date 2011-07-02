@@ -3,16 +3,21 @@
  */
 package com.hipsnip.plugins.facebook;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Iterator;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
-import android.app.Activity;
-
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.phonegap.api.Plugin;
@@ -49,20 +54,31 @@ public class FacebookAuth extends Plugin {
 			first = args.getString(0);
 		} catch (JSONException e) {
 			first = "";
-			Log.w("Facebook-Plugin", "No arguments in execute");
+			Log.w("PhoneGapLog", "No arguments in execute");
 		}
 
 		if (action.equals("authorize")) {
 			this.authorize(first); // first arg is APP_ID
 		} else if (action.equals("reauthorize")) {
-			this.reauthorize(first, args); // first arg is APP_ID
-		} else if (action.equals("request")){
+			this.reauthorize(first); // first arg is APP_ID
+		} else if (action.equals("request")) {
 			this.getResponse(first); // first arg is path
-		} else if (action.equals("getAccess")){
+		} else if (action.equals("getAccess")) {
 			this.getAccess();
-		} else if (action.equals("setPermissions")){
+		} else if (action.equals("setPermissions")) {
 			this.setPermissions(args);
-		}
+		} else if (action.equals("logout")) {
+			this.logout();
+		} else if (action.equals("dialog")) {
+			JSONObject params = null;
+			try {
+				params = args.getJSONObject(1);
+			} catch (JSONException e) {
+				params = new JSONObject();
+			}
+			
+			this.dialog(first, params); // first arg is action
+		} 
 
 		PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
 		r.setKeepCallback(true);
@@ -79,14 +95,14 @@ public class FacebookAuth extends Plugin {
 
 		this.success(new PluginResult(PluginResult.Status.OK, json), this.callback);
 	}
-
+	
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		this.mFb.authorizeCallback(requestCode, resultCode, intent);
 		this.getResponse("me");
 	}
 
 	public void getResponse(final String path){
-		Log.d("DroidGap", "onActivityResult FacebookAuth");
+		Log.d("PhoneGapLog", "onActivityResult FacebookAuth");
 		try {
 			String response = this.mFb.request(path);
 			JSONObject json = Util.parseJson(response);
@@ -141,6 +157,24 @@ public class FacebookAuth extends Plugin {
 		}
 		this.success(new PluginResult(PluginResult.Status.OK, true), this.callback);
 	}
+	
+	public void logout() {
+		Log.d("PhoneGapLog", "logout");
+		final FacebookAuth fba = this;
+		try {
+			fba.mFb.logout(fba.ctx);
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(fba.ctx);
+			prefs.edit().putLong("access_expires", -1).commit();
+			prefs.edit().putString("access_token", null).commit();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.success(new PluginResult(PluginResult.Status.OK), this.callback);
+	}
 
 	/**
 	 * Display a new browser with the specified URL.
@@ -161,6 +195,35 @@ public class FacebookAuth extends Plugin {
 		};
 		this.ctx.runOnUiThread(runnable);
 	}
+	
+	/**
+	 * Display a Facebook Dialog with specified action.
+	 *
+	 * @return				"" if ok, or error message.
+	 */
+	public void dialog(final String action, JSONObject parameters) {
+		Log.d("PhoneGapLog", "authorize");
+		final FacebookAuth fba = this;
+		
+		Bundle collect = new Bundle();
+		Iterator<String> iter = parameters.keys();
+		while (iter.hasNext()) {
+			String key = iter.next();
+			try {
+				collect.putString(key, parameters.getString(key));
+			} catch (JSONException e) {
+				Log.w("PhoneGapLog", "Nonstring parameter provided to dialog discarded");
+			}
+		}
+		
+		final Bundle paramBundle = new Bundle(collect);
+		Runnable runnable = new Runnable() {
+			public void run() {
+				fba.mFb.dialog(fba.ctx, action, paramBundle, new UIDialogListener(fba));
+			};
+		};
+		this.ctx.runOnUiThread(runnable);
+	}
 
 	/**
 	 * Validate an existing token and expiration, and use them for the Facebook
@@ -169,11 +232,13 @@ public class FacebookAuth extends Plugin {
 	 *
 	 * @return				true if ok, or print a stack trace
 	 */
-	public void reauthorize(final String appid, JSONArray args) {
+	public void reauthorize(final String appid) {
 		Log.d("PhoneGapLog", "reauthorize");
 		final FacebookAuth fba = this;
-		final String access_token = args.optString(1, null);
-		final Long expires = args.optLong(2, -1);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(fba.ctx);
+		String access_token = prefs.getString("access_token", null);
+		Long expires = prefs.getLong("access_expires", -1);
+
 		if (fba.mFb == null) {
 			fba.mFb = new Facebook(appid);
 			fba.mFb.setPlugin(fba);
@@ -195,9 +260,41 @@ public class FacebookAuth extends Plugin {
 
 		public void onComplete(Bundle values) {
 			//  Handle a successful login
+			
+			String token = this.fba.mFb.getAccessToken();
+			long token_expires = this.fba.mFb.getAccessExpires();
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this.fba.ctx);
+			prefs.edit().putLong("access_expires", token_expires).commit();
+			prefs.edit().putString("access_token", token).commit();
 
 			Log.d("PhoneGapLog",values.toString());
 			this.fba.getResponse("me");
+		}
+
+		public void onFacebookError(FacebookError e) {
+			e.printStackTrace();
+		}
+
+		public void onError(DialogError e) {
+			e.printStackTrace();
+		}
+
+		public void onCancel() {
+		}
+	}
+	
+	class UIDialogListener implements DialogListener {
+		final FacebookAuth fba;
+
+		public UIDialogListener(FacebookAuth fba){
+			super();
+			this.fba = fba;
+		}
+
+		public void onComplete(Bundle values) {
+			//  Handle a successful dialog
+			Log.d("PhoneGapLog",values.toString());
+			this.fba.success(new PluginResult(PluginResult.Status.OK), this.fba.callback);
 		}
 
 		public void onFacebookError(FacebookError e) {
