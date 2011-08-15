@@ -43,7 +43,6 @@
      */
     PhoneGap.addConstructor(function() {
         PhoneGap.addPlugin("facebook", new Facebook());
-        PluginManager.addService("FacebookAuth", "com.hipsnip.plugins.facebook.FacebookAuth");
     });
 
 })();
