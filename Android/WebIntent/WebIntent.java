@@ -78,7 +78,12 @@ public class WebIntent extends Plugin {
 				Intent i = this.ctx.getIntent();
 				String extraName = args.getString(0);
 				if (i.hasExtra(extraName)) {
-					return new PluginResult(PluginResult.Status.OK, i.getStringExtra(extraName));
+					if (extraName.equals(Intent.EXTRA_STREAM)) {
+						Uri uri = (Uri) i.getExtras().getParcelable(Intent.EXTRA_STREAM);
+						return new PluginResult(PluginResult.Status.OK, uri.toString());
+				          } else {
+				            return new PluginResult(PluginResult.Status.OK, i.getStringExtra(extraName));
+				          }
 				} else {
 					return new PluginResult(PluginResult.Status.ERROR);
 				}
